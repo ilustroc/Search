@@ -8,58 +8,78 @@ use Carbon\Carbon;
 
 class SearchController extends Controller
 {
+    /**
+     * Recibe el POST del formulario inicial
+     */
+    public function procesarFormulario(Request $request)
+    {
+        // Validamos que llegue el documento
+        $request->validate([
+            'documento' => 'required|numeric',
+            'tipo' => 'required|in:DNI,RUC'
+        ]);
+
+        // Redirigimos a la URL limpia /buscar/12345678?tipo=DNI
+        return redirect()->route('buscar.directo', [
+            'documento' => $request->documento,
+            'tipo' => $request->tipo
+        ]);
+    }
+
+    /**
+     * Realiza la búsqueda y muestra la vista de resultados
+     */
     public function buscar(Request $request, $documento)
     {
-        // 1. Cargamos todo en una sola consulta eficiente (Equivalente a tus Services)
+        // Eager loading para evitar el error de la columna sbs_resumen.cod_sbs
         $cliente = Persona::with([
-            'direcciones',
-            'telefonos' => fn($q) => $q->orderBy('fecha_activacion', 'desc'),
-            'autos',
-            'familiares',
-            'correos',
-            'propiedades',
-            'situaciones.detalles'
-        ])->where('documento', $documento)->first();
+            'direcciones', 
+            'telefonos', 
+            'autos', 
+            'familiares', 
+            'correos', 
+            'propiedades', 
+            'situaciones' // Quitamos .detalles de aquí para cargarlo manualmente si falla
+        ])->find($documento);
 
         if (!$cliente) {
             return view('no_encontrado', compact('documento'));
         }
 
-        // 2. Procesamos la Situación Financiera (Lógica de tu situacion_service.py)
+        $situacion = $cliente->situaciones->first();
         $situacionData = null;
-        $situacionOriginal = $cliente->situaciones->first();
 
-        if ($situacionOriginal) {
-            $n   = $situacionOriginal->calificacion_normal ?? 0;
-            $cpp = $situacionOriginal->calificacion_cpp ?? 0;
-            $d   = $situacionOriginal->calificacion_deficiente ?? 0;
-            $du  = $situacionOriginal->calificacion_dudoso ?? 0;
-            $p   = $situacionOriginal->calificacion_perdida ?? 0;
-            
-            $total = ($n + $cpp + $d + $du + $p) ?: 1;
+        if ($situacion) {
+            // Carga manual de detalles para asegurar que no rompa por el join de cod_sbs
+            $detalles = \App\Models\SituacionDetalle::where('documento', $documento)
+                        ->where('cod_sbs', $situacion->cod_sbs)
+                        ->get();
 
-            $situacionData = [
-                'fecha_reporte' => $situacionOriginal->fecha_reporte,
-                'porcentaje_normal' => number_format(($n / $total) * 100, 2),
-                'porcentaje_potencial' => number_format(($cpp / $total) * 100, 2),
-                'porcentaje_deficiente' => number_format(($d / $total) * 100, 2),
-                'porcentaje_dudoso' => number_format(($du / $total) * 100, 2),
-                'porcentaje_perdida' => number_format(($p / $total) * 100, 2),
-                'detalles' => $situacionOriginal->detalles
+            $total = ($situacion->calificacion_normal + $situacion->calificacion_cpp + 
+                    $situacion->calificacion_deficiente + $situacion->calificacion_dudoso + 
+                    $situacion->calificacion_perdida) ?: 1;
+
+            $situacionData = (object)[
+                'fecha_reporte' => $situacion->fecha_reporte,
+                'porcentaje_normal' => ($situacion->calificacion_normal / $total) * 100,
+                'porcentaje_potencial' => ($situacion->calificacion_cpp / $total) * 100,
+                'porcentaje_deficiente' => ($situacion->calificacion_deficiente / $total) * 100,
+                'porcentaje_dudoso' => ($situacion->calificacion_dudoso / $total) * 100,
+                'porcentaje_perdida' => ($situacion->calificacion_perdida / $total) * 100,
+                'detalles' => $detalles
             ];
         }
 
-        // 3. Retornamos la vista con los datos ya procesados
         return view('resultado', [
-            'cliente'    => $cliente,
-            'edad'       => $cliente->edad, // Usamos el accessor definido en el modelo
-            'direccion'  => $cliente->direcciones->first(),
-            'telefonos'  => $cliente->telefonos,
-            'autos'      => $cliente->autos,
+            'cliente' => $cliente,
+            'direccion' => $cliente->direcciones->first(),
+            'telefonos' => $cliente->telefonos,
+            'autos' => $cliente->autos,
             'familiares' => $cliente->familiares,
-            'correos'    => $cliente->correos,
-            'sunarp'     => $cliente->propiedades,
-            'situacion'  => $situacionData,
+            'correos' => $cliente->correos,
+            'sunarp' => $cliente->propiedades,
+            'situacion' => $situacionData,
+            'edad' => $cliente->nacimiento ? Carbon::parse($cliente->nacimiento)->age : '---'
         ]);
     }
 }
