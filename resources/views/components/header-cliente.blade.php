@@ -1,7 +1,7 @@
 <div class="flex flex-col sm:flex-row sm:items-center gap-5">
     <div class="shrink-0">
         <div class="h-20 w-20 rounded-2xl border border-white/12 bg-white/10 overflow-hidden shadow-sm">
-            <img src="{{ $cliente->foto ?? asset('images/user-placeholder.png') }}"
+            <img src="{{ $cliente->foto ?? asset('img/user-placeholder.png') }}"
                  alt="Foto del Cliente"
                  class="h-full w-full object-cover" />
         </div>

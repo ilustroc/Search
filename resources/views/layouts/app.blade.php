@@ -17,7 +17,7 @@
             <div class="h-16 flex items-center justify-between gap-4">
 
                 <div class="flex items-center gap-3 min-w-0">
-                    <img src="{{ asset('images/logo.png') }}"
+                    <img src="{{ asset('img/logo.png') }}"
                          alt="IMPULSE GO"
                          class="h-9 w-auto opacity-90" />
 

@@ -1,4 +1,5 @@
 @props(['situacion'])
+
 <section>
     @if($situacion)
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
@@ -12,6 +13,7 @@
         </div>
 
         @php
+            // Usamos los nombres de variables que vienen del objeto procesado en el controlador
             $calificaciones = [
                 ['label' => 'Normal', 'val' => $situacion->calificacion_normal, 'color' => 'bg-emerald-400/80'],
                 ['label' => 'CPP', 'val' => $situacion->calificacion_cpp, 'color' => 'bg-teal-300/80'],
@@ -26,10 +28,15 @@
                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div class="flex items-center justify-between gap-3">
                         <div class="text-sm font-semibold text-white/85">{{ $cal['label'] }}</div>
-                        <div class="text-sm font-bold text-white">{{ number_format($cal['val'] ?? 0, 2) }}%</div>
+                        {{-- Calculamos el porcentaje sobre la marcha o usamos el del controlador --}}
+                        @php 
+                            $total = array_sum(array_column($calificaciones, 'val')) ?: 1;
+                            $porcentaje = ($cal['val'] / $total) * 100;
+                        @endphp
+                        <div class="text-sm font-bold text-white">{{ number_format($porcentaje, 2) }}%</div>
                     </div>
                     <div class="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div class="h-full rounded-full {{ $cal['color'] }}" style="width: {{ $cal['val'] ?? 0 }}%"></div>
+                        <div class="h-full rounded-full {{ $cal['color'] }}" style="width: {{ $porcentaje }}%"></div>
                     </div>
                 </div>
             @endforeach
@@ -39,8 +46,9 @@
             <table class="min-w-full text-left">
                 <thead class="bg-white/5">
                     <tr class="text-[11px] uppercase tracking-widest text-white/55">
-                        <th class="px-5 py-3">Entidad</th>
-                        <th class="px-5 py-3">Monto</th>
+                        <th class="px-5 py-3 font-semibold">Entidad</th>
+                        <th class="px-5 py-3 font-semibold">Monto</th>
+                        <th class="px-5 py-3 font-semibold">Días Atraso</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/10">
@@ -52,6 +60,7 @@
                                 S/ {{ number_format($s->monto ?? 0, 2) }}
                             </span>
                         </td>
+                        <td class="px-5 py-3 text-white/60">{{ $s->dias_atraso ?? '0' }}</td>
                     </tr>
                     @endforeach
                 </tbody>

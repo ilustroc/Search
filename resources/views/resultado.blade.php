@@ -1,3 +1,7 @@
+@extends('layouts.app') {{-- ESTA LÍNEA ES OBLIGATORIA PARA QUE NO SALGA BLANCO --}}
+
+@section('title', 'Resultado Cliente')
+
 @section('content')
 <div class="space-y-6">
     <x-header-cliente :cliente="$cliente" :direccion="$direccion" :edad="$edad" />
@@ -14,6 +18,7 @@
                 <x-direcciones :direcciones="$cliente->direcciones" />
                 <x-autos :autos="$autos" />
                 <x-familiares :familiares="$familiares" />
+                <x-sunarp :propiedades="$sunarp" />
             </div>
         </div>
     </div>

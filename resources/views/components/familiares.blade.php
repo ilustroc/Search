@@ -17,7 +17,7 @@
             @foreach($familiares as $familiar)
                 <div class="rounded-2xl border border-white/10 bg-black/20 p-4 hover:bg-white/5 transition">
                     <div class="flex items-center gap-3">
-                        <img src="{{ asset('images/user-placeholder.png') }}" alt="Avatar" class="h-10 w-10 rounded-2xl border border-white/10 object-cover" />
+                        <img src="{{ asset('img/user-placeholder.png') }}" alt="Avatar" class="h-10 w-10 rounded-2xl border border-white/10 object-cover" />
                         <div class="min-w-0">
                             <div class="text-sm font-semibold text-white truncate">{{ $familiar->nombre_fam ?? '---' }}</div>
                             <div class="mt-1 text-[12px] text-white/60">

@@ -31,55 +31,58 @@ class SearchController extends Controller
      */
     public function buscar(Request $request, $documento)
     {
-        // Eager loading para evitar el error de la columna sbs_resumen.cod_sbs
         $cliente = Persona::with([
-            'direcciones', 
-            'telefonos', 
-            'autos', 
-            'familiares', 
-            'correos', 
-            'propiedades', 
-            'situaciones' // Quitamos .detalles de aquí para cargarlo manualmente si falla
+            'direcciones', 'telefonos', 'autos', 'familiares', 'correos', 'propiedades', 'situaciones'
         ])->find($documento);
 
         if (!$cliente) {
             return view('no_encontrado', compact('documento'));
         }
 
-        $situacion = $cliente->situaciones->first();
+        $situacionOriginal = $cliente->situaciones->first();
         $situacionData = null;
 
-        if ($situacion) {
-            // Carga manual de detalles para asegurar que no rompa por el join de cod_sbs
+        if ($situacionOriginal) {
+            // --- LA CONSULTA DE DETALLES VA AQUÍ AFUERA ---
             $detalles = \App\Models\SituacionDetalle::where('documento', $documento)
-                        ->where('cod_sbs', $situacion->cod_sbs)
-                        ->get();
+                ->where('cod_sbs', $situacionOriginal->cod_sbs)
+                ->get();
 
-            $total = ($situacion->calificacion_normal + $situacion->calificacion_cpp + 
-                    $situacion->calificacion_deficiente + $situacion->calificacion_dudoso + 
-                    $situacion->calificacion_perdida) ?: 1;
+            $n   = $situacionOriginal->calificacion_normal ?? 0;
+            $cpp = $situacionOriginal->calificacion_cpp ?? 0;
+            $d   = $situacionOriginal->calificacion_deficiente ?? 0;
+            $du  = $situacionOriginal->calificacion_dudoso ?? 0;
+            $p   = $situacionOriginal->calificacion_perdida ?? 0;
+            
+            $total = ($n + $cpp + $d + $du + $p) ?: 1;
 
+            // Ahora creamos el objeto para la vista
             $situacionData = (object)[
-                'fecha_reporte' => $situacion->fecha_reporte,
-                'porcentaje_normal' => ($situacion->calificacion_normal / $total) * 100,
-                'porcentaje_potencial' => ($situacion->calificacion_cpp / $total) * 100,
-                'porcentaje_deficiente' => ($situacion->calificacion_deficiente / $total) * 100,
-                'porcentaje_dudoso' => ($situacion->calificacion_dudoso / $total) * 100,
-                'porcentaje_perdida' => ($situacion->calificacion_perdida / $total) * 100,
-                'detalles' => $detalles
+                'fecha_reporte' => $detalles->max('fecha_reporte_sbs') ?? '---',
+                'calificacion_normal' => $n,
+                'calificacion_cpp' => $cpp,
+                'calificacion_deficiente' => $d,
+                'calificacion_dudoso' => $du,
+                'calificacion_perdida' => $p,
+                'porcentaje_normal' => ($n / $total) * 100,
+                'porcentaje_potencial' => ($cpp / $total) * 100,
+                'porcentaje_deficiente' => ($d / $total) * 100,
+                'porcentaje_dudoso' => ($du / $total) * 100,
+                'porcentaje_perdida' => ($p / $total) * 100,
+                'detalles' => $detalles // Aquí pasamos los detalles que consultamos arriba
             ];
         }
 
         return view('resultado', [
-            'cliente' => $cliente,
-            'direccion' => $cliente->direcciones->first(),
-            'telefonos' => $cliente->telefonos,
-            'autos' => $cliente->autos,
+            'cliente'    => $cliente,
+            'direccion'  => $cliente->direcciones->first(),
+            'telefonos'  => $cliente->telefonos,
+            'autos'      => $cliente->autos,
             'familiares' => $cliente->familiares,
-            'correos' => $cliente->correos,
-            'sunarp' => $cliente->propiedades,
-            'situacion' => $situacionData,
-            'edad' => $cliente->nacimiento ? Carbon::parse($cliente->nacimiento)->age : '---'
+            'correos'    => $cliente->correos,
+            'sunarp'     => $cliente->propiedades,
+            'situacion'  => $situacionData,
+            'edad'       => $cliente->nacimiento ? \Carbon\Carbon::parse($cliente->nacimiento)->age : '---'
         ]);
     }
 }
