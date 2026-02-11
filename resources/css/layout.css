@@ -1,0 +1,14 @@
+/* Estilos para el Header y Navegación */
+.header-glass {
+    @apply sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md;
+}
+
+.search-input-header {
+    @apply w-full bg-slate-100 border-none rounded-xl py-2 pl-10 pr-4 text-sm 
+           placeholder-slate-400 focus:ring-2 focus:ring-[#4C1D95]/20 focus:bg-white transition-all;
+}
+
+/* Sombras suaves para el diseño Light */
+.shadow-soft {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}

@@ -1,12 +1,9 @@
-@import 'tailwindcss';
-
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+@import "tailwindcss";
+@import "./layout.css";
+@import "./resultado.css";
 
 @theme {
   --color-ig-dark: #4C1D95;
   --color-ig-primary: #7C3AED;
-  --color-ig-ink: #0B0614;
+  --color-ig-bg: #F8FAFC;
 }

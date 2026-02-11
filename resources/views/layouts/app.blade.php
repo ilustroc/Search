@@ -6,36 +6,45 @@
     <title>@yield('title', 'IMPULSE GO')</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
     @stack('head')
 </head>
 
-<body class="min-h-screen bg-gradient-to-b from-[#0B0614] via-[#140A2A] to-[#090515] text-white">
+<body class="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
 
-    <header class="sticky top-0 z-50 border-b border-white/10 bg-black/20 backdrop-blur-xl">
+    <header class="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="h-16 flex items-center justify-between gap-4">
+            <div class="h-16 flex items-center justify-between gap-8">
 
-                <div class="flex items-center gap-3 min-w-0">
-                    <img src="{{ asset('img/logo.png') }}"
-                         alt="IMPULSE GO"
-                         class="h-9 w-auto opacity-90" />
-
-                    <div class="min-w-0">
-                        <div class="text-sm font-semibold tracking-wide text-white/90 truncate">IMPULSE GO</div>
-                        <div class="text-xs text-white/60 truncate">Consulta de Clientes</div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-8 w-auto" />
+                    <div class="hidden md:block border-l border-slate-200 pl-3">
+                        <div class="text-sm font-bold tracking-tight text-slate-800">IMPULSE GO</div>
+                        <div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Data Center</div>
                     </div>
                 </div>
 
-                <a href="{{ url('/') }}"
-                   class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold
-                          text-white/90 shadow-sm hover:bg-white/10 active:bg-white/15 transition">
-                    <svg class="h-5 w-5 text-white/80" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-9.5Z"
-                              stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                    </svg>
-                    <span>Inicio</span>
-                </a>
+                <div class="flex-1 max-w-md hidden sm:block">
+                    <form action="{{ route('buscar') }}" method="POST" class="relative group">
+                        @csrf
+                        <input type="hidden" name="tipo" value="DNI">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="h-4 w-4 text-slate-400 group-focus-within:text-[#4C1D95] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input type="text" name="documento" 
+                            class="search-input-header" 
+                            placeholder="Consultar otro DNI...">
+                    </form>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <a href="{{ url('/') }}" class="p-2 text-slate-400 hover:text-ig-dark hover:bg-slate-100 rounded-xl transition-all">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </a>
+                </div>
 
             </div>
         </div>
@@ -43,11 +52,15 @@
 
     <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         @yield('content')
-
-        <footer class="mt-8 text-center text-xs text-white/35">
-            IMPULSE GO · Uso interno
-        </footer>
     </main>
+
+    <footer class="py-12 border-t border-slate-200 bg-white">
+        <div class="text-center">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                &copy; {{ date('Y') }} IMPULSE GO &middot; Terminal de Consulta Interna
+            </p>
+        </div>
+    </footer>
 
     @stack('scripts')
 </body>

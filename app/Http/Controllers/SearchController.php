@@ -13,16 +13,14 @@ class SearchController extends Controller
      */
     public function procesarFormulario(Request $request)
     {
-        // Validamos que llegue el documento
         $request->validate([
             'documento' => 'required|numeric',
-            'tipo' => 'required|in:DNI,RUC'
+            'tipo' => 'nullable|in:DNI,RUC' // Ahora el tipo puede ser opcional
         ]);
 
-        // Redirigimos a la URL limpia /buscar/12345678?tipo=DNI
         return redirect()->route('buscar.directo', [
             'documento' => $request->documento,
-            'tipo' => $request->tipo
+            'tipo' => $request->tipo ?? 'DNI' // Por defecto DNI si se usa el buscador del header
         ]);
     }
 
