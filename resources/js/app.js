@@ -1,4 +1,6 @@
 import './bootstrap';
+import './tabs.js';
+import './ui.js';
 
 // Esperamos a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {

@@ -6,6 +6,7 @@
 @source '../**/*.js';
 
 @theme {
-  --color-brand-deep: #0B0614;
-  --color-brand-purple: #4C1D95;
+  --color-ig-dark: #4C1D95;
+  --color-ig-primary: #7C3AED;
+  --color-ig-ink: #0B0614;
 }
