@@ -10,7 +10,12 @@ class Persona extends Model
     protected $primaryKey = 'documento'; // Tu PRIMARY KEY es documento
     public $incrementing = false;        // No es auto-increment
     protected $keyType = 'string';
-
+    protected $fillable = [
+    'documento', 'paterno', 'materno', 'nombres', 
+    'nacimiento', 'sexo', 'estado_civil', 'padre', 
+    'madre', 'direccion_raw'
+    ];
+    
     // Relaciones basadas en tu SQL
     public function direcciones() { return $this->hasMany(Direccion::class, 'documento', 'documento'); }
     public function telefonos() { return $this->hasMany(Telefono::class, 'documento', 'documento'); }
