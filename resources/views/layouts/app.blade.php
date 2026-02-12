@@ -34,8 +34,10 @@
                             </svg>
                         </div>
                         <input type="text" name="documento" 
+                            maxlength="8"
                             class="search-input-header" 
-                            placeholder="Consultar otro DNI...">
+                            placeholder="Consultar otro DNI..."
+                            required>
                     </form>
                 </div>
 
@@ -59,8 +61,15 @@
 
     <main class="mx-auto max-w-7xl px-4 sm:px-2 lg:px-8 py-2">
         
-        {{-- ÁREA DE NOTIFICACIONES Y ERRORES DE LOGS --}}
         <div class="space-y-4 mb-6">
+            {{-- Mostramos los errores de validación de DNI (como "DNI no encontrado") --}}
+            @if($errors->any())
+                <div class="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-700 font-bold text-sm flex items-center gap-3 animate-pulse">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
             @if(session('success'))
                 <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold text-sm flex items-center gap-3">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
@@ -82,7 +91,6 @@
                 </div>
             @endif
 
-            {{-- DETALLE TÉCNICO DE ERRORES EN CSV (LOGS) --}}
             @if (session()->has('import_errors'))
                 <div class="bg-rose-50 border border-rose-200 rounded-2xl overflow-hidden">
                     <div class="px-4 py-3 bg-rose-100/50 border-b border-rose-200">

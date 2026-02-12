@@ -7,10 +7,13 @@ use App\Http\Controllers\Admin\ImportController;
 // Vista de inicio
 Route::get('/', function () { return view('welcome'); });
 
-// Procesa el formulario (POST) y redirige
-Route::post('/buscar', [SearchController::class, 'procesarFormulario'])->name('buscar');
+/**
+ * Búsqueda de Clientes (Rutas Separadas)
+ */
+// Recibe el POST del header o buscador principal
+Route::post('/buscar', [SearchController::class, 'buscar'])->name('buscar');
 
-// Muestra el resultado (GET) - AQUÍ ESTABA EL ERROR
+// Muestra el resultado final con URL limpia /buscar/XXXXXXXX
 Route::get('/buscar/{documento}', [SearchController::class, 'buscar'])->name('buscar.directo');
 
 // Panel de Administración
