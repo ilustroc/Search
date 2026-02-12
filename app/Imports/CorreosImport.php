@@ -39,7 +39,7 @@ class CorreosImport implements ToModel, WithHeadingRow, WithBatchInserts, WithCh
     public function getCsvSettings(): array
     {
         return [
-            'delimiter' => ';'
+            'delimiter' => ','
         ];
     }
 
