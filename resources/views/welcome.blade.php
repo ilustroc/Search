@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Consulta Cliente - IMPULSE GO</title>
 
-    @vite(['resources/css/app.css', 'resources/css/welcome.css', 'resources/js/search-form.js'])
+    @vite(['resources/css/app.css', 'resources/js/search-form.js'])
 </head>
 
 <body class="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
