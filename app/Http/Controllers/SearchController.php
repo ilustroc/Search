@@ -9,39 +9,34 @@ use Carbon\Carbon;
 class SearchController extends Controller
 {
     /**
-     * Recibe el POST del formulario inicial
-     */
-    public function procesarFormulario(Request $request)
-    {
-        $request->validate([
-            'documento' => 'required|numeric',
-            'tipo' => 'nullable|in:DNI,RUC' // Ahora el tipo puede ser opcional
-        ]);
-
-        return redirect()->route('buscar.directo', [
-            'documento' => $request->documento,
-            'tipo' => $request->tipo ?? 'DNI' // Por defecto DNI si se usa el buscador del header
-        ]);
-    }
-
-    /**
      * Realiza la búsqueda y muestra la vista de resultados
      */
-    public function buscar(Request $request, $documento)
+    public function buscar(Request $request)
     {
+        // Validamos que el documento sea enviado y sea numérico
+        $request->validate([
+            'documento' => 'required|numeric|digits:8',
+        ], [
+            'documento.digits' => 'El DNI debe tener exactamente 8 dígitos.',
+            'documento.required' => 'Debes ingresar un número de documento.',
+        ]);
+
+        $documento = $request->documento;
+
         $cliente = Persona::with([
             'direcciones', 'telefonos', 'autos', 'familiares', 'correos', 'propiedades', 'situaciones'
         ])->find($documento);
 
+        // Si no existe, volvemos atrás con mensaje de error
         if (!$cliente) {
-            return view('no_encontrado', compact('documento'));
+            return back()->withErrors(['documento' => 'DNI no encontrado en nuestra base de datos.']);
         }
 
+        // Lógica de situación financiera (SBS)
         $situacionOriginal = $cliente->situaciones->first();
         $situacionData = null;
 
         if ($situacionOriginal) {
-            // Obtenemos TODOS los detalles de deudas sin filtrar por un único cod_sbs
             $detalles = \App\Models\SituacionDetalle::where('documento', $documento)->get();
 
             $n   = $situacionOriginal->calificacion_normal ?? 0;
@@ -53,7 +48,6 @@ class SearchController extends Controller
             $total = ($n + $cpp + $d + $du + $p) ?: 1;
 
             $situacionData = (object)[
-                // Buscamos la fecha en la colección de detalles o en el resumen
                 'fecha_reporte' => $detalles->first()->fecha_reporte_sbs ?? '---',
                 'calificacion_normal' => $n,
                 'calificacion_cpp' => $cpp,
@@ -78,7 +72,7 @@ class SearchController extends Controller
             'correos'    => $cliente->correos,
             'sunarp'     => $cliente->propiedades,
             'situacion'  => $situacionData,
-            'edad'       => $cliente->nacimiento ? \Carbon\Carbon::parse($cliente->nacimiento)->age : '---'
+            'edad'       => $cliente->nacimiento ? Carbon::parse($cliente->nacimiento)->age : '---'
         ]);
     }
 }
