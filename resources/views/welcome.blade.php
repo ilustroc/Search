@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Consulta Cliente - IMPULSE GO</title>
+    
+    <link rel="icon" type="image/png" href="{{ asset('img/logotipo.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/search-form.js'])
 </head>
@@ -25,26 +27,7 @@
                         Consulta de Clientes  
                     </h1>
                     <p class="mt-2 text-sm text-slate-500">
-                        Busca rápidamente por DNI o RUC en nuestra base de datos.
-                    </p>
-                </div>
-
-                <div class="mb-6">
-                    <div class="grid grid-cols-2 rounded-2xl bg-slate-100 p-1.5">
-                        <button
-                            type="button" id="tab-dni" data-tipo="DNI"
-                            class="tab-btn rounded-xl px-4 py-2.5 text-sm font-bold transition-all select-none">
-                            Por DNI
-                        </button>
-
-                        <button type="button" id="tab-ruc" data-tipo="RUC"
-                            class="tab-btn rounded-xl px-4 py-2.5 text-sm font-bold transition-all select-none">
-                            Por RUC
-                        </button>
-                    </div>
-
-                    <p id="helper" class="mt-3 text-center text-xs text-slate-400 font-medium">
-                        Ingresa un DNI válido de 8 dígitos.
+                        Busca rápidamente por número de DNI.
                     </p>
                 </div>
 
@@ -54,7 +37,7 @@
 
                     <div>
                         <label id="label-busqueda" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">
-                            Número de Documento
+                            Número de Documento (DNI)
                         </label>
 
                         <div class="relative group">
