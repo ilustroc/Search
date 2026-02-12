@@ -12,11 +12,19 @@ class Telefono extends Model
     // Casteamos el campo yape a booleano automáticamente
     protected $casts = [
         'yape' => 'boolean',
-        'fecha_activacion' => 'date'
     ];
 
     public function persona()
     {
         return $this->belongsTo(Persona::class, 'documento', 'documento');
     }
+    
+    // Lista de campos que permitimos llenar masivamente
+    protected $fillable = [
+        'documento', 
+        'telefono', 
+        'tipo', 
+        'origen', 
+        'fecha_act_raw'
+    ];
 }

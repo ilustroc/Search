@@ -5,7 +5,7 @@
 @endpush
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-4">
     {{-- Tu contenido idéntico al original --}}
     <section class="card-light !p-4 sm:!p-5">
         <x-header-cliente :cliente="$cliente" :direccion="$direccion" :edad="$edad" />

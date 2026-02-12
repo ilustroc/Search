@@ -50,7 +50,7 @@
                                     </td>
 
                                     <td class="px-4 py-3 text-slate-500 font-medium">
-                                        {{ $tel->fecha_activacion ?? '---' }}
+                                        {{ $tel->fecha_act_raw ?? '---' }}
                                     </td>
 
                                     <td class="px-4 py-3">

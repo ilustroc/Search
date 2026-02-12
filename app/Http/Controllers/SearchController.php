@@ -41,10 +41,8 @@ class SearchController extends Controller
         $situacionData = null;
 
         if ($situacionOriginal) {
-            // --- LA CONSULTA DE DETALLES VA AQUÍ AFUERA ---
-            $detalles = \App\Models\SituacionDetalle::where('documento', $documento)
-                ->where('cod_sbs', $situacionOriginal->cod_sbs)
-                ->get();
+            // Obtenemos TODOS los detalles de deudas sin filtrar por un único cod_sbs
+            $detalles = \App\Models\SituacionDetalle::where('documento', $documento)->get();
 
             $n   = $situacionOriginal->calificacion_normal ?? 0;
             $cpp = $situacionOriginal->calificacion_cpp ?? 0;
@@ -54,9 +52,9 @@ class SearchController extends Controller
             
             $total = ($n + $cpp + $d + $du + $p) ?: 1;
 
-            // Ahora creamos el objeto para la vista
             $situacionData = (object)[
-                'fecha_reporte' => $detalles->max('fecha_reporte_sbs') ?? '---',
+                // Buscamos la fecha en la colección de detalles o en el resumen
+                'fecha_reporte' => $detalles->first()->fecha_reporte_sbs ?? '---',
                 'calificacion_normal' => $n,
                 'calificacion_cpp' => $cpp,
                 'calificacion_deficiente' => $d,
@@ -67,7 +65,7 @@ class SearchController extends Controller
                 'porcentaje_deficiente' => ($d / $total) * 100,
                 'porcentaje_dudoso' => ($du / $total) * 100,
                 'porcentaje_perdida' => ($p / $total) * 100,
-                'detalles' => $detalles // Aquí pasamos los detalles que consultamos arriba
+                'detalles' => $detalles 
             ];
         }
 

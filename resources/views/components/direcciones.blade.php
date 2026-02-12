@@ -34,6 +34,7 @@
                                 <th class="px-4 py-3 text-left font-bold uppercase tracking-wider text-[10px]">Departamento</th>
                                 <th class="px-4 py-3 text-left font-bold uppercase tracking-wider text-[10px]">Provincia</th>
                                 <th class="px-4 py-3 text-left font-bold uppercase tracking-wider text-[10px]">Distrito</th>
+                                <th class="px-4 py-3 text-left font-bold uppercase tracking-wider text-[10px]">Ubigeo</th>
                             </tr>
                         </thead>
 
@@ -51,6 +52,9 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         {{ $d->distrito ?? '---' }}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        {{ $d->ubigeo_nacimiento ?? '---' }}
                                     </td>
                                 </tr>
                             @endforeach

@@ -16,6 +16,6 @@ Route::get('/buscar/{documento}', [SearchController::class, 'buscar'])->name('bu
 // Panel de Administración
 Route::prefix('admin')->group(function () {
     Route::get('/import', [ImportController::class, 'index'])->name('admin.import.index');
-    Route::post('/import', [ImportController::class, 'upload'])->name('admin.import.upload');
-    Route::delete('/truncate', [ImportController::class, 'truncate'])->name('admin.import.truncate');
+    Route::post('/import/{tipo}', [ImportController::class, 'upload'])->name('admin.import.upload');
+    Route::delete('/truncate/{tabla}', [ImportController::class, 'truncate'])->name('admin.import.truncate');
 });

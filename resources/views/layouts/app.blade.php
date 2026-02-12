@@ -56,7 +56,7 @@
         </div>
     </header>
 
-    <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <main class="mx-auto max-w-7xl px-4 sm:px-2 lg:px-8 py-2">
         
         {{-- ÁREA DE NOTIFICACIONES Y ERRORES DE LOGS --}}
         <div class="space-y-4 mb-6">
@@ -104,7 +104,7 @@
         @yield('content')
     </main>
 
-    <footer class="py-12 border-t border-slate-200 bg-white">
+    <footer class="py-4 border-t border-slate-200 bg-white">
         <div class="text-center">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
                 &copy; {{ date('Y') }} IMPULSE GO &middot; Terminal de Consulta Interna

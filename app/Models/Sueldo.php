@@ -4,19 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Direccion extends Model
+class Sueldo extends Model
 {
-    protected $table = 'direcciones';
+    // Nombre exacto de tu tabla física
+    protected $table = 'sueldos';
     public $timestamps = false;
 
-    // Campos autorizados para la carga masiva basados en tu DB
+    // Atributos autorizados para carga masiva
     protected $fillable = [
         'documento',
-        'direccion',
-        'departamento',
-        'provincia',
-        'distrito',
-        'ubigeo_nacimiento'
+        'periodo', // Mapearemos 'FECHA' del CSV a esta columna
+        'ruc',
+        'sueldo',
+        'situacion'
     ];
 
     public function persona()

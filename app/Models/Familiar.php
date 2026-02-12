@@ -9,13 +9,19 @@ class Familiar extends Model
     protected $table = 'familiares';
     public $timestamps = false;
 
-    protected $casts = [
-        'f_nac_fam' => 'date'
+    // Campos autorizados para carga masiva
+    protected $fillable = [
+        'documento',
+        'documento_fam',
+        'paterno_fam',
+        'materno_fam',
+        'nombre_fam',
+        'f_nac_fam',
+        'tipo_fam'
     ];
 
-    // Compatibilidad con tu lógica de Python: fecha_nac_fam
-    public function getFechaNacFamAttribute()
+    public function persona()
     {
-        return $this->f_nac_fam ? $this->f_nac_fam->format('Y-m-d') : '';
+        return $this->belongsTo(Persona::class, 'documento', 'documento');
     }
 }

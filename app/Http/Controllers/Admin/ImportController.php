@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Persona;
-use App\Imports\PersonasImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
+use App\Imports\{
+    PersonasImport, TelefonosImport, DireccionesImport, 
+    AutosImport, CorreosImport, FamiliaresImport,
+    SbsResumenImport, SbsDetalleImport, SueldosImport, SunarpImport
+};
 
 class ImportController extends Controller
 {
@@ -15,25 +18,41 @@ class ImportController extends Controller
         return view('admin.import');
     }
 
-    public function upload(Request $request) {
+    public function upload(Request $request, $tipo) {
         $request->validate(['archivo' => 'required|mimes:csv,txt']);
+        ini_set('max_execution_time', 600); 
 
-        $import = new PersonasImport;
-        Excel::import($import, $request->file('archivo'));
+        $importClass = match($tipo) {
+            'personas'     => new PersonasImport,
+            'telefonos'    => new TelefonosImport,
+            'direcciones'  => new DireccionesImport,
+            'autos'        => new AutosImport,
+            'correos'      => new CorreosImport,
+            'familiares'   => new FamiliaresImport,
+            'sbs_resumen'  => new SbsResumenImport,
+            'sbs_detalle'  => new SbsDetalleImport,
+            'sueldos'      => new SueldosImport,
+            'sunarp'       => new SunarpImport,
+            default        => abort(404)
+        };
 
-        if ($import->failures()->count() > 0) {
-            return back()->with('import_errors', $import->failures());
-        }
-
-        return back()->with('success', '¡Carga masiva finalizada con éxito!');
+        Excel::import($importClass, $request->file('archivo'));
+        return back()->with('success', "Importación de " . strtoupper($tipo) . " completada.");
     }
 
-    public function truncate() {
-        // Truncar es más rápido que Delete para limpiar tablas grandes
+    public function truncate($tabla) {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        Persona::truncate();
+        // Mapeo de nombre de ruta a nombre real de tabla en DB
+        $tableRealName = match($tabla) {
+            'sunarp' => 'sunarp_partidas',
+            'sbs_resumen' => 'sbs_resumen',
+            'sbs_detalle' => 'sbs_detalle',
+             default => $tabla
+        };
+        
+        DB::table($tableRealName)->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        return back()->with('info', 'Base de datos limpiada. Lista para nueva carga.');
+        return back()->with('info', "Tabla $tabla limpiada exitosamente.");
     }
 }

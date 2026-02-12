@@ -1,14 +1,14 @@
 <?php
+
 namespace App\Imports;
 
 use App\Models\Persona;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithBatchInserts; // Crucial para velocidad
-use Maatwebsite\Excel\Concerns\WithUpserts;      // Maneja duplicados sin fallar
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class PersonasImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChunkReading, WithUpserts
+class PersonasImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChunkReading
 {
     public function model(array $row)
     {
@@ -26,22 +26,13 @@ class PersonasImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
         ]);
     }
 
-    /**
-     * Define qué columna es la clave única (DNI). 
-     * Si el DNI ya existe, lo actualiza en lugar de dar error.
-     */
-    public function uniqueBy()
-    {
-        return 'documento';
-    }
-
-    /** Inserta en bloques de 1,000 registros por cada consulta SQL. */
+    // Inserta en bloques de 1000 registros (Súper rápido)
     public function batchSize(): int
     {
         return 1000;
     }
 
-    /** Lee el archivo en trozos de 1,000 para no saturar la memoria RAM. */
+    // Lee el archivo en trozos para no agotar la memoria
     public function chunkSize(): int
     {
         return 1000;
