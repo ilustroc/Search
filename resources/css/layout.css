@@ -1,3 +1,6 @@
+/* resources/css/layout.css */
+@reference "tailwindcss"; /* Agrega esta línea al inicio */
+
 /* Estilos para el Header y Navegación */
 .header-glass {
     @apply sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md;
