@@ -5,16 +5,18 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ImportController;
 
 // Vista de inicio
-Route::get('/', function () { return view('welcome'); });
+Route::get('/', function () { 
+    return view('welcome'); 
+})->name('home');
 
 /**
- * Búsqueda de Clientes (Rutas Separadas)
+ * Búsqueda de Clientes
+ * Usamos GET para que la URL sea: /buscar?documento=XXXXXXXX
  */
-// Recibe el POST del header o buscador principal
-Route::post('/buscar', [SearchController::class, 'buscar'])->name('buscar');
+Route::get('/buscar', [SearchController::class, 'buscar'])->name('buscar');
 
-// Muestra el resultado final con URL limpia /buscar/XXXXXXXX
-Route::get('/buscar/{documento}', [SearchController::class, 'buscar'])->name('buscar.directo');
+// Mantenemos el POST por compatibilidad con el formulario actual del header
+Route::post('/buscar', [SearchController::class, 'buscar']);
 
 // Panel de Administración
 Route::prefix('admin')->group(function () {

@@ -11,35 +11,38 @@ class SearchController extends Controller
     /**
      * Realiza la búsqueda y muestra la vista de resultados
      */
-    public function buscar(Request $request, $documento = null)
+    public function buscar(Request $request)
     {
-        // 1. Obtener el DNI ya sea del formulario (POST) o de la URL (GET)
-        $dni = $request->documento ?? $documento;
+        // 1. Obtener el DNI (ya sea de ?documento= o de un envío POST)
+        $dni = $request->query('documento') ?? $request->input('documento');
 
-        // 2. Si no hay DNI y es una entrada directa por GET, mandamos al inicio
+        // 2. Si entran a /buscar sin DNI vía GET, regresamos al inicio
         if (!$dni && $request->isMethod('get')) {
             return redirect('/');
         }
 
-        // 3. Validación: Si el DNI no tiene 8 dígitos o no es numérico, rebota con alerta
-        if (!$dni || strlen($dni) !== 8 || !is_numeric($dni)) {
-            return back()->withErrors(['documento' => 'Número de DNI inválido. Debe tener 8 dígitos.']);
+        // 3. Validación de formato
+        $request->validate([
+            'documento' => 'required|numeric|digits:8',
+        ], [
+            'documento.digits' => 'El DNI debe tener exactamente 8 dígitos.',
+            'documento.required' => 'Debes ingresar un número de documento.',
+        ]);
+
+        // 4. Si la petición es POST (envío de formulario), redirigimos a GET 
+        // para que la URL se vea como: /buscar?documento=XXXXXXXX
+        if ($request->isMethod('post')) {
+            return redirect()->route('buscar', ['documento' => $dni]);
         }
 
-        // 4. Consulta a la base de datos
+        // 5. Consulta a la base de datos con todas las relaciones
         $cliente = Persona::with([
             'direcciones', 'telefonos', 'autos', 'familiares', 'correos', 'propiedades', 'situaciones'
         ])->find($dni);
 
-        // 5. Si el DNI no existe: Rebota a la pantalla actual con la alerta roja
+        // 6. Rebote: Si el DNI no existe, regresamos atrás con error (mantiene al usuario donde estaba)
         if (!$cliente) {
-            return back()->withErrors(['documento' => "DNI $dni no encontrado."]);
-        }
-
-        // 6. REDIRECCIÓN PARA URL LIMPIA: Si el DNI existe y venimos de un POST (formulario),
-        // redirigimos a la ruta GET para que la URL sea /buscar/{dni}
-        if ($request->isMethod('post')) {
-            return redirect()->route('buscar.directo', ['documento' => $dni]);
+            return back()->withErrors(['documento' => "DNI $dni no encontrado en nuestra base de datos."]);
         }
 
         // 7. Lógica de situación financiera (SBS)
@@ -54,6 +57,7 @@ class SearchController extends Controller
             $d   = $situacionOriginal->calificacion_deficiente ?? 0;
             $du  = $situacionOriginal->calificacion_dudoso ?? 0;
             $p   = $situacionOriginal->calificacion_perdida ?? 0;
+            
             $total = ($n + $cpp + $d + $du + $p) ?: 1;
 
             $situacionData = (object)[
@@ -72,7 +76,7 @@ class SearchController extends Controller
             ];
         }
 
-        // 8. Retorno de la vista de resultados
+        // 8. Retorno de la vista con los datos procesados
         return view('resultado', [
             'cliente'    => $cliente,
             'direccion'  => $cliente->direcciones->first(),
