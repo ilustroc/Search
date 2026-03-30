@@ -59,7 +59,7 @@
                                                 Verificado
                                             </span>
                                         @else
-                                            <span class="text-[10px] text-slate-300 font-medium italic lowercase">Sin validar</span>
+                                            <span class="text-[10px] text-slate-900 font-medium italic lowercase">Sin validar</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3">
