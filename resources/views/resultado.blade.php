@@ -60,7 +60,7 @@
             </div>
 
             <div class="lg:col-span-8 space-y-6">
-                <x-telefonos :telefonos="$telefonos" />
+                <x-telefonos :telefonos="$telefonos" :cliente="$cliente" />
                 
                 <x-direcciones :direcciones="$cliente->direcciones" />
 

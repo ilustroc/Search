@@ -19,6 +19,25 @@ class SearchController extends Controller
         });
     }
 
+    public function consultarOsiptelAjax($dni)
+    {
+        // Usamos caché para no saturar a Osiptel si el asesor refresca
+        return Cache::remember("osiptel_dni_{$dni}", 3600, function () use ($dni) {
+            try {
+                $path = base_path('scraper_osiptel.py');
+                $arg = escapeshellarg($dni);
+                $result = \shell_exec("python3 $path $arg 2>&1");
+                
+                if (preg_match('/\[.*\]/', $result, $matches)) {
+                    return response()->json(json_decode($matches[0]));
+                }
+                return response()->json([]);
+            } catch (\Exception $e) {
+                return response()->json([]);
+            }
+        });
+    }
+    
     public function buscar(Request $request)
     {
         $dni = $request->query('documento') ?? $request->input('documento');

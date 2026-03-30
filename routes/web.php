@@ -26,3 +26,4 @@ Route::prefix('admin')->group(function () {
 });
 
 Route::get('/api/validar-whatsapp/{telefono}', [SearchController::class, 'validarWhatsapp']);
+Route::get('/api/consultar-osiptel/{dni}', [SearchController::class, 'consultarOsiptelAjax']);
