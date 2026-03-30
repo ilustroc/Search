@@ -5,38 +5,46 @@ import re
 
 def run_scraper(dni):
     results = []
-    # Usamos una sesión para manejar cookies automáticamente
+    # Usamos una sesión para persistir las cookies de la sesión de Osiptel
     session = requests.Session()
     
-    # URL de la web de Osiptel
     url_base = "https://checatuslineas.osiptel.gob.pe/"
     
+    # Headers que imitan a un navegador Chrome real
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Referer": url_base
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "es-ES,es;q=0.9",
+        "Connection": "keep-alive",
+        "Host": "checatuslineas.osiptel.gob.pe",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
     try:
-        # 1. Entramos a la home para obtener cookies
-        response = session.get(url_base, headers=headers, timeout=10)
+        # 1. Cargamos la página inicial para obtener las cookies obligatorias (.AspNetCore.Antiforgery)
+        first_res = session.get(url_base, headers=headers, timeout=10)
         
-        # 2. Simulamos la búsqueda que hace el botón "Consultar"
-        # Osiptel usa un endpoint de tipo POST/GET para los resultados
-        # Nota: Si Osiptel requiere resolver un Token (Anti-Forgery), este método lo capturará.
+        # 2. Extraemos el Token de validación que Osiptel oculta en el HTML
+        token_match = re.search(r'name="__RequestVerificationToken" type="hidden" value="(.*?)"', first_res.text)
+        token = token_match.group(1) if token_match else ""
+
+        # 3. Petición de búsqueda (POST es el método que usa su tabla interna)
         search_url = f"{url_base}Home/GetListarLineas"
-        params = {
+        
+        payload = {
+            "__RequestVerificationToken": token,
             "IdTipoDoc": "1", # DNI
             "NumeroDocumento": dni
         }
+
+        # Enviamos la consulta simulando el clic
+        res = session.post(search_url, data=payload, headers=headers, timeout=15)
         
-        res = session.get(search_url, params=params, headers=headers, timeout=15)
-        
-        # 3. Buscamos los números con asteriscos en el texto (ej: 93049****)
-        # Usamos expresiones regulares para encontrar los prefijos de 5 dígitos
+        # 4. Buscamos el patrón numérico 9xxxx****
+        # Osiptel devuelve un JSON o un HTML con la tabla. Buscamos en ambos.
         matches = re.findall(r'(\d{5})\*{4}', res.text)
         
         if matches:
-            results = list(set(matches)) # Quitamos duplicados
+            results = list(set(matches))
 
     except Exception:
         pass
@@ -46,7 +54,6 @@ def run_scraper(dni):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         dni_arg = sys.argv[1]
-        # Imprimimos el JSON final para que Laravel lo lea
         print(json.dumps(run_scraper(dni_arg)))
     else:
         print(json.dumps([]))
