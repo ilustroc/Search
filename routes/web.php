@@ -24,3 +24,5 @@ Route::prefix('admin')->group(function () {
     Route::post('/import/{tipo}', [ImportController::class, 'upload'])->name('admin.import.upload');
     Route::delete('/truncate/{tabla}', [ImportController::class, 'truncate'])->name('admin.import.truncate');
 });
+
+Route::get('/api/validar-whatsapp/{telefono}', [SearchController::class, 'validarWhatsapp']);

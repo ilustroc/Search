@@ -4,24 +4,41 @@ namespace App\Http\Controllers;
 
 use App\Models\Persona;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache; // Importante para la estabilidad
 use Carbon\Carbon;
 
 class SearchController extends Controller
 {
     /**
+     * API para validar WhatsApp en segundo plano
+     */
+    public function validarWhatsapp($telefono)
+    {
+        return Cache::remember("ws_val_{$telefono}", 86400, function () use ($telefono) {
+            // --- Lógica propia de validación ---
+            // Aquí puedes poner una lista negra o conectar tu propia base de datos de inactivos
+            $inactivos = ['932513281']; 
+
+            $exists = !in_array($telefono, $inactivos) && (strlen($telefono) === 9);
+
+            return response()->json([
+                'exists' => $exists,
+                'phone'  => $telefono
+            ]);
+        });
+    }
+
+    /**
      * Realiza la búsqueda y muestra la vista de resultados
      */
     public function buscar(Request $request)
     {
-        // 1. Obtener el DNI (ya sea de ?documento= o de un envío POST)
         $dni = $request->query('documento') ?? $request->input('documento');
 
-        // 2. Si entran a /buscar sin DNI vía GET, regresamos al inicio
         if (!$dni && $request->isMethod('get')) {
             return redirect('/');
         }
 
-        // 3. Validación de formato
         $request->validate([
             'documento' => 'required|numeric|digits:8',
         ], [
@@ -29,23 +46,21 @@ class SearchController extends Controller
             'documento.required' => 'Debes ingresar un número de documento.',
         ]);
 
-        // 4. Si la petición es POST (envío de formulario), redirigimos a GET 
-        // para que la URL se vea como: /buscar?documento=XXXXXXXX
         if ($request->isMethod('post')) {
             return redirect()->route('buscar', ['documento' => $dni]);
         }
 
-        // 5. Consulta a la base de datos con todas las relaciones
-        $cliente = Persona::with([
-            'direcciones', 'telefonos', 'autos', 'familiares', 'correos', 'propiedades', 'situaciones'
-        ])->find($dni);
+        // Optimizamos la carga con caché de 30 minutos para evitar caídas del servidor
+        $cliente = Cache::remember("perfil_dni_{$dni}", 1800, function () use ($dni) {
+            return Persona::with([
+                'direcciones', 'telefonos', 'autos', 'familiares', 'correos', 'propiedades', 'situaciones'
+            ])->find($dni);
+        });
 
-        // 6. Rebote: Si el DNI no existe, regresamos atrás con error (mantiene al usuario donde estaba)
         if (!$cliente) {
             return back()->withErrors(['documento' => "DNI $dni no encontrado en nuestra base de datos."]);
         }
 
-        // 7. Lógica de situación financiera (SBS)
         $situacionOriginal = $cliente->situaciones->first();
         $situacionData = null;
 
@@ -76,7 +91,6 @@ class SearchController extends Controller
             ];
         }
 
-        // 8. Retorno de la vista con los datos procesados
         return view('resultado', [
             'cliente'    => $cliente,
             'direccion'  => $cliente->direcciones->first(),
