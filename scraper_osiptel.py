@@ -1,80 +1,55 @@
 import sys
 import json
-import time
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import requests
+import re
 
 def run_scraper(dni):
-    # --- RUTAS CORREGIDAS SEGÚN TU TREE ---
-    CHROME_PATH = "/home/u480021566/domains/consorcioabogadosperu.com/public_html/search/bin/chrome-linux64/chrome-linux64/chrome"
-    DRIVER_PATH = "/home/u480021566/domains/consorcioabogadosperu.com/public_html/search/bin/chromedriver-linux64/chromedriver"
-
-    chrome_options = Options()
-    chrome_options.binary_location = CHROME_PATH
-    chrome_options.add_argument("--headless=new") # Nueva sintaxis de headless
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--single-process") # Crítico para servidores limitados
-    chrome_options.add_argument("--window-size=1920,1080")
-    
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    
     results = []
-    driver = None
+    # Usamos una sesión para mantener las cookies activas
+    session = requests.Session()
+    
+    url_base = "https://checatuslineas.osiptel.gob.pe/"
+    url_post = "https://checatuslineas.osiptel.gob.pe/Home/GetListarLineas"
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        "Accept": "*/*",
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": url_base,
+        "Origin": "https://checatuslineas.osiptel.gob.pe"
+    }
 
     try:
-        service = Service(DRIVER_PATH)
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+        # 1. Cargamos la home para obtener el Token de Seguridad invisible (__RequestVerificationToken)
+        response_home = session.get(url_base, headers=headers, timeout=10)
         
-        driver.get("https://checatuslineas.osiptel.gob.pe/")
+        # Extraemos el token del HTML usando Regex
+        token_match = re.search(r'name="__RequestVerificationToken" type="hidden" value="(.*?)"', response_home.text)
+        token = token_match.group(1) if token_match else ""
+
+        # 2. Preparamos la consulta simulando el botón del formulario
+        payload = {
+            "__RequestVerificationToken": token,
+            "IdTipoDoc": "1", # DNI
+            "NumeroDocumento": dni
+        }
+
+        # Enviamos la petición POST que es la que llena la tabla
+        response_data = session.post(url_post, data=payload, headers=headers, timeout=15)
         
-        # Espera hasta que el input sea visible
-        wait = WebDriverWait(driver, 10)
+        # 3. Osiptel responde con HTML de la tabla. Buscamos el patrón 9xxxx****
+        # Buscamos números de 5 dígitos seguidos de 4 asteriscos
+        matches = re.findall(r'(\d{5})\*{4}', response_data.text)
         
-        # 1. Seleccionar DNI
-        doc_select = wait.until(EC.presence_of_element_located((By.ID, "IdTipoDoc")))
-        for option in doc_select.find_elements(By.TAG_NAME, "option"):
-            if option.text.strip() == "DNI":
-                option.click()
-                break
+        if matches:
+            results = list(set(matches)) # Quitamos duplicados
+
+    except Exception:
+        pass
         
-        # 2. Ingresar número
-        input_box = driver.find_element(By.ID, "NumeroDocumento")
-        input_box.send_keys(dni)
-        
-        # 3. Click Buscar usando JS para mayor seguridad
-        btn_buscar = driver.find_element(By.ID, "btnBuscar")
-        driver.execute_script("arguments[0].click();", btn_buscar)
-        
-        # 4. Espera a que la tabla se refresque
-        time.sleep(5) 
-        
-        rows = driver.find_elements(By.CSS_SELECTOR, "#GridConsulta tbody tr")
-        
-        for row in rows:
-            cells = row.find_elements(By.TAG_NAME, "td")
-            if len(cells) >= 2:
-                texto_numero = cells[1].text.strip()
-                if "*" in texto_numero:
-                    prefix = texto_numero.replace("*", "").strip()
-                    if prefix:
-                        results.append(prefix)
-                    
-    except Exception as e:
-        # Descomenta la línea de abajo solo para ver el error en la terminal
-        # sys.stderr.write(f"DEBUG ERROR: {str(e)}\n")
-        pass 
-    finally:
-        if driver:
-            driver.quit()
-        
-    return list(set(results))
+    return results
 
 if __name__ == "__main__":
-    dni_arg = sys.argv[1] if len(sys.argv) > 1 else ""
-    print(json.dumps(run_scraper(dni_arg)))
+    dni_input = sys.argv[1] if len(sys.argv) > 1 else ""
+    # Imprimimos el JSON para que Laravel lo atrape
+    print(json.dumps(run_scraper(dni_input)))
